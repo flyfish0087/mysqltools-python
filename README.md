@@ -14,8 +14,8 @@ homepage:**http://www.sqlpy.com**
 - [安装](#安装)
 - [监控](#监控)
 - [MySQL慢查询工具](#MySQL慢查询工具)
-
-
+- [端口检测工具](#端口检测工具)
+- [大文件分析](#大文件分析)
 ---
 
 ## 关于
@@ -287,6 +287,75 @@ homepage:**http://www.sqlpy.com**
    **在我的另一个项目`mysqltools`中是有把这个监控项与zabbix结合的，见`https://github.com/Neeky/mysqltools`**
 
    ---  
+
+## 备份
+   ****
+
+   ---
+
+## 端口检测工具
+   **有时候我们想确认到目标主机的端口的网络是否能连通，以 192.168.1.4 主机上的 8080 端口为例吧，我怎么确认到这个端口是不是通的呢？解决方案就是在这个ip和端口上起一个tcp监听，然后一测就知道了**
+
+   **第一步：192.168.1.4 主机上运行 mtlshttp 命令让它起一个到8080端口的 tcp 监听**
+   ```bash
+   mtlshttp --ip=192.168.1.4 --port=8080
+   2019-03-23 09:52:54.714280 | prepare start block http server
+   2019-03-23 09:52:54.714427 | server binds on 192.168.1.4:8080
+   ```
+   **第二步：检测连通性(我在这里使用浏览器来检测)**
+   <img src="./imgs/mtlshttp.png">
+
+   **其它检测方法也是可行的**
+   ```html
+   curl http://192.168.1.4:8080/
+
+
+   <html>
+                   <head>
+                       <title> block http server </title>
+                   </head>
+                   <body>
+                       <h1>mtlshttp is working ...</h1>
+                   </body>
+               </html>
+   ```
+   ```bash
+   telnet 192.168.1.4 8080
+
+
+   Trying 192.168.1.4...
+   Connected to 192.168.1.4.
+   Escape character is '^]'.
+   ```
+   >特别感谢 工程师 HanGang 对上述接口的测试 https://github.com/Han-Gang
+
+   ---
+
+## 大文件分析
+   **mtlsbigfiles 用于分析给定目录下哪几个文件比较大**
+   ```bash
+   mtlsbigfiles /usr/local/homebrew/var/mysql/ 
+   ******************************************************
+   |FILE PATH                                 | FILE SIZE| 
+   ******************************************************
+   |/usr/local/homebrew/var/mysql/ibdata1     | 12.6 MB 
+   |/usr/local/homebrew/var/mysql/ibtmp1      | 12.6 MB 
+   |/usr/local/homebrew/var/mysql/undo_001    | 12.6 MB 
+   |/usr/local/homebrew/var/mysql/undo_002    | 12.6 MB 
+   |/usr/local/homebrew/var/mysql/mysql.ibd   | 26.2 MB 
+   |/usr/local/homebrew/var/mysql/ib_logfile1 | 50.3 MB 
+   |/usr/local/homebrew/var/mysql/ib_logfile0 | 50.3 M
+
+
+   mtlsbigfiles /usr/local/homebrew/var/mysql/  --limit=3
+   ******************************************************
+   |FILE PATH                                 | FILE SIZE| 
+   ******************************************************
+   |/usr/local/homebrew/var/mysql/mysql.ibd   | 26.2 MB 
+   |/usr/local/homebrew/var/mysql/ib_logfile1 | 50.3 MB 
+   |/usr/local/homebrew/var/mysql/ib_logfile0 | 50.3 MB 
+   ```
+   ---
 
 ## MySQL慢查询工具
    **官方提供的mysqldumpslow工具已经非常好用了，但是有一个问题还是存在的比如说我只想对特定时间段内的慢查询做分析；这个时候我们就要手工写bash脚本来“切”日志了；像我这样并不是特别认同bash编程风格的DBA来说身体上是拒绝的，但是同样的需求不只一次的重复在工作中出现时，我想我有写点什么东西的必要了；这就有了mtlslog这个命令行工具** 
