@@ -12,14 +12,41 @@ homepage:**http://www.sqlpy.com**
 
 - [关于](#关于)
 - [安装](#安装)
-- [监控](#监控)
-- [MySQL慢查询工具](#MySQL慢查询工具)
-- [端口检测工具](#端口检测工具)
-- [大文件分析](#大文件分析)
+- [数据库监控项采集 -- mtls-monitor](#数据库监控项采集)
+- [数据库备份 -- mtls-backup](#数据库备份)
+- [慢查询日志切片分析 -- mtls-log ](#慢查询日志切片分析)
+- [tcp端口连通性测试 -- mtls-http](#tcp端口连通性测试)
+- [查询给定目录中的大文件 -- mtls-big-files](#查询给定目录中的大文件)
+- [温和删除表中的行 -- mtls-delete-rows](#温和删除表中的行)
+- [温和文件截断 -- mtls-file-truncate](#温和文件截断)
+- [数据库性能测试 -- mtls-perf-bench](#数据库性能测试)
+- [断开所有的客户端连接 -- mtls-kill-all-connections](#断开所有的客户端连接)
+- [统计慢查询文件中的SQL类型与热点表 -- mtls-sql-distribution](#统计慢查询文件中的SQL类型与热点表)
+- [表的最晚更新时间统计 -- mtls-file-stat](#表的最晚更新时间统计)
+- [找出长时间没有使用过的表 -- mtls-expired-tables](#找出长时间没有使用过的表)
 ---
 
 ## 关于
-   **1): 什么是mysqtools-python** mysqltools-python是一个Python工具包，它的主要功能是可以完成对MySQL的“监控”，“备份”，“巡检(开发中)”，“自动故障分析与解决(开发中)”
+   **1、** mysqltools-python 是一个 专为 dba 服务的 python 工具包，主要的目的在于把一些锁定程序化，一方面可以提高劳动生产率，另一方面可以节约 dba 的时间。
+
+   ---
+
+   **2、** 目前工具包中集成的工具列表
+   
+   |**工具名**|**功能说明**|
+   |---------|-----------|
+   |mtls-monitor| 监控项采集 |
+   |mtls-backup|  自动化备份数据库 |
+   |mtls-delete-rows| 分批(温和)删除大表中的行|
+   |mtls-file-truncate| 分批(温和)的截断物理文件|
+   |mtls-big-files| 查询出给定目录下的大文件名|
+   |mtls-http| tcp(http)端口连通性测试|
+   |mtls-log | 慢查询日志切片|
+   |mtls-perf-bench| 数据库跑分工具(开发中)|
+   |mtls-kill-all-connections | 杀死所有的客户端连接|
+   |mtls-sql-distribution | 统计慢查询文件中的SQL类型与热点表 |
+   |mtls-file-stat| 表的最晚更新时间统计|
+   |mtls-expired-tables|找出长时间没有使用过的表| 
 
    ---
 
@@ -43,9 +70,9 @@ homepage:**http://www.sqlpy.com**
    You should consider upgrading via the 'pip install --upgrade pip' command.
    ```
 
-   安装完成后你就可以使用mysqltools-python提供的两个命令行工具(mtlsmontir,mtlsbackup)和一个模块包(mtls)了；比如我们可以通过mtlsmonitor来看一上MySQL启动后执行了多少Select语句
+   安装完成后你就可以使用mysqltools-python提供的两个命令行工具(mtls-montir,mtls-backup)和一个模块包(mtls)了；比如我们可以通过mtlsmonitor来看一上MySQL启动后执行了多少Select语句
    ```
-   mtlsmonitor --host=127.0.0.1 --port=3306 --user=monitor --password=monitor0352 ComSelect
+   mtls-monitor --host=127.0.0.1 --port=3306 --user=monitor --password=monitor0352 ComSelect
    ```
    ```
    44
@@ -53,7 +80,7 @@ homepage:**http://www.sqlpy.com**
 
    ---
 
-## 监控
+## 数据库监控项采集
    **1): mysqltools-python已经实现的监控项列表**
 
    *监控项名*                         |               *简介*                |               *采集方式*        
@@ -239,11 +266,11 @@ homepage:**http://www.sqlpy.com**
 
    **2): 监控工具mtlsmonitor的使用方式**
    ```
-   mtlsmonitor --host=<主机IP> --port=<端口> --user=<MySQL用户名> --password=<MySQL用户密码> <监控项名>
+   mtls-monitor --host=<主机IP> --port=<端口> --user=<MySQL用户名> --password=<MySQL用户密码> <监控项名>
    ``` 
    比如说我想查看innodb层面的行锁等待次数(InnodbRowLockWaits) 那我就可以这样做
    ```
-   mtlsmonitor --host=127.0.0.1 --port=3306 --user=monitor --password=monitor0352 InnodbRowLockWaits
+   mtls-monitor --host=127.0.0.1 --port=3306 --user=monitor --password=monitor0352 InnodbRowLockWaits
    ```
    ```
    0
@@ -288,17 +315,18 @@ homepage:**http://www.sqlpy.com**
 
    ---  
 
-## 备份
+## 数据库备份
    ****
+   见 <a href="https://github.com/Neeky/mysqltools"> mysqltools 中备份相关章节</a>
 
    ---
 
-## 端口检测工具
+## tcp端口连通性测试
    **有时候我们想确认到目标主机的端口的网络是否能连通，以 192.168.1.4 主机上的 8080 端口为例吧，我怎么确认到这个端口是不是通的呢？解决方案就是在这个ip和端口上起一个tcp监听，然后一测就知道了**
 
    **第一步：192.168.1.4 主机上运行 mtlshttp 命令让它起一个到8080端口的 tcp 监听**
    ```bash
-   mtlshttp --ip=192.168.1.4 --port=8080
+   mtls-http --ip=192.168.1.4 --port=8080
    2019-03-23 09:52:54.714280 | prepare start block http server
    2019-03-23 09:52:54.714427 | server binds on 192.168.1.4:8080
    ```
@@ -331,10 +359,10 @@ homepage:**http://www.sqlpy.com**
 
    ---
 
-## 大文件分析
+## 查询给定目录中的大文件
    **mtlsbigfiles 用于分析给定目录下哪几个文件比较大**
    ```bash
-   mtlsbigfiles /usr/local/homebrew/var/mysql/ 
+   mtls-big-files /usr/local/homebrew/var/mysql/ 
    ******************************************************
    |FILE PATH                                 | FILE SIZE| 
    ******************************************************
@@ -347,7 +375,7 @@ homepage:**http://www.sqlpy.com**
    |/usr/local/homebrew/var/mysql/ib_logfile0 | 50.3 M
 
 
-   mtlsbigfiles /usr/local/homebrew/var/mysql/  --limit=3
+   mtls-big-files /usr/local/homebrew/var/mysql/  --limit=3
    ******************************************************
    |FILE PATH                                 | FILE SIZE| 
    ******************************************************
@@ -357,13 +385,13 @@ homepage:**http://www.sqlpy.com**
    ```
    ---
 
-## MySQL慢查询工具
-   **官方提供的mysqldumpslow工具已经非常好用了，但是有一个问题还是存在的比如说我只想对特定时间段内的慢查询做分析；这个时候我们就要手工写bash脚本来“切”日志了；像我这样并不是特别认同bash编程风格的DBA来说身体上是拒绝的，但是同样的需求不只一次的重复在工作中出现时，我想我有写点什么东西的必要了；这就有了mtlslog这个命令行工具** 
+## 慢查询日志切片分析
+   **官方提供的mysqldumpslow工具已经非常好用了，但是有一个问题还是存在的比如说我只想对特定时间段内的慢查询做分析；这个时候我们就要手工写bash脚本来“切”日志了；像我这样并不是特别认同bash编程风格的DBA来说身体上是拒绝的，但是同样的需求不只一次的重复在工作中出现时，我想我有写点什么东西的必要了；这就有了mtls-log这个命令行工具** 
 
-   **1): 查看mtlslog命令行帮助信息**
+   **1): 查看mtls-log命令行帮助信息**
    ```bash
-   mtlslog --help
-   usage: mtlslog [-h] [--slow-log-file SLOW_LOG_FILE] [--starttime STARTTIME]
+   mtls-log --help
+   usage: mtls-log [-h] [--slow-log-file SLOW_LOG_FILE] [--starttime STARTTIME]
                   [--endtime ENDTIME] [--charset CHARSET] [--top TOP]
                   {log_slice,hot_table,hot_uid,hot_client}
    
@@ -380,7 +408,7 @@ homepage:**http://www.sqlpy.com**
      --charset CHARSET
      --top TOP
    ```
-   **mtlslog 有三个主要的功能 a): log_slice 它可以从慢查询日志中切出“特定时间段”内的那部分日志 b): hot_table 它可以系统慢查询中最频繁出现的表 c): 统计出最容易引起慢查询的客户端主机的ip**
+   **mtls-log 有三个主要的功能 a): log_slice 它可以从慢查询日志中切出“特定时间段”内的那部分日志 b): hot_table 它可以系统慢查询中最频繁出现的表 c): 统计出最容易引起慢查询的客户端主机的ip**
 
    ---
 
@@ -402,9 +430,9 @@ homepage:**http://www.sqlpy.com**
 
    ```
    
-   b): 通过mtlslog切出“# Time: 181022  0:03:43” 到 “# Time: 181022  0:15:53” 这个时段内的查询查询,并把日志保存到/tmp/s.log文件中
+   b): 通过mtls-log切出“# Time: 181022  0:03:43” 到 “# Time: 181022  0:15:53” 这个时段内的查询查询,并把日志保存到/tmp/s.log文件中
    ```bash
-   mtlslog --slow-log-file=slow_query.log \
+   mtls-log --slow-log-file=slow_query.log \
     --starttime='# Time: 181022  0:03:43' --endtime='# Time: 181022  0:15:53' \
     log_slice > /tmp/s.log
    ```
@@ -424,7 +452,7 @@ homepage:**http://www.sqlpy.com**
 
    **3): hot_table 统计慢查询中出现次数最多表名(默认top=7)**
    ```bash
-   mtlslog --slow-log-file=/tmp/s.log hot_table
+   mtls-log --slow-log-file=/tmp/s.log hot_table
    TABLE_NAME                       COUNTER
    ------------------------------------------------
     tempdb.sbtest01         101
@@ -438,7 +466,7 @@ homepage:**http://www.sqlpy.com**
 
    **4): hot_client 统计慢查询中出现的客户端的IP地址(默认top=7)**
    ```bash
-   mtlslog --slow-log-file=/tmp/s.log hot_client
+   mtls-log --slow-log-file=/tmp/s.log hot_client
    CLIENT_HOST_IP                   COUNTER
    ------------------------------------------------
    192.168.136.214                   270
@@ -448,3 +476,397 @@ homepage:**http://www.sqlpy.com**
    mtlslog 的定位是mysqldumpslow的一个补充
    
    ---
+
+## 温和删除表中的行
+   **有时候我们会遇到一些大表，比如说单表 500G 这种场景下不管是 DDL 还是 DML 效率都不高。如果表里面有些数据已经过时了，删除这些无效的数据，通常来讲是一个不错的选择。**
+
+   **在删除无效数据的时候有些要注意的地方，不能一下子全部删除完，这样就会造成瞬间有大量磁盘IO，进而影响业务；针对这类的场景通常是每一次删除非常少的行，如 1000 行然后执行 n 次删除操作。**
+
+   **针对上面的场景我们提供了 `mtls-delete-rows` 它会从 --sql-file 指定的文件中读取要执行的 sql 语句，然后在 sql 语句的后面加上 limit ; 每条 sql 语句都会在一个循环中执行，循环的退出条件是 sql 删除了 0 行；然后再进入执行下一条语句的循环。**
+
+   **1、** 假设 tempdb.t 就是我们要执行删除操作的大表
+   ```sql
+   select count(*) from tempdb.t;                                                             
+   +----------+
+   | count(*) |
+   +----------+
+   |  1048576 |
+   +----------+
+   1 row in set (0.12 sec)
+   ```
+   **2、** 要执行的删除语句是
+   ```bash
+   cat /tmp/dlt.sql 
+   delete from tempdb.t where id <= 12000;
+   ````
+   **3、** 通过 mtls-delete-rows 完分批执行的操作
+   ```bash
+   # view 参数用来查看 mtlsdeleterows 会对 sql 语句进行怎样的处理
+   mtls-delete-rows --host=127.0.0.1 --port=3306 --user=root --password=mtls0352 \
+   --rows=100 --sql-file=/tmp/dlt.sql view
+
+   2019-07-26 20:37:27,176 INFO formatted sql statement : delete from tempdb.t where id <= 12000 limit 100;
+
+   # exec 参数才会真正的执行删除操作
+   mtlsdeleterows --host=127.0.0.1 --port=3306 --user=root --password=mtls0352 --rows=100 --sql-file=/tmp/dlt.sql exec
+
+   2019-07-26 20:53:35,413 INFO 100 row(s) affected by delete from tempdb.t where id <= 12000 limit 100; 
+   2019-07-26 20:53:36,422 INFO 100 row(s) affected by delete from tempdb.t where id <= 12000 limit 100; 
+   2019-07-26 20:53:37,430 INFO 100 row(s) affected by delete from tempdb.t where id <= 12000 limit 100; 
+   2019-07-26 20:53:38,440 INFO 100 row(s) affected by delete from tempdb.t where id <= 12000 limit 100; 
+   ...
+   ...
+   2019-07-26 20:53:53,561 INFO 100 row(s) affected by delete from tempdb.t where id <= 12000 limit 100; 
+   2019-07-26 20:53:54,569 INFO 100 row(s) affected by delete from tempdb.t where id <= 12000 limit 100; 
+   2019-07-26 20:53:55,576 INFO 1 row(s) affected by delete from tempdb.t where id <= 12000 limit 100; 
+   2019-07-26 20:53:56,578 INFO compelete
+   ```
+   **4、** 更多选项可以查看帮助
+   ```bash
+   mtls-delete-rows --help                                                     
+   usage: mtls-delete-rows [-h] [--host HOST] [--port PORT] [--user USER]                              
+                         [--password PASSWORD] [--sleep-time SLEEP_TIME]
+                         [--rows ROWS] [--sql-file SQL_FILE]
+                         [--encoding ENCODING]
+                         {view,exec}
+   
+   positional arguments:
+     {view,exec}
+   
+   optional arguments:
+     -h, --help            show this help message and exit
+     --host HOST           mysql host
+     --port PORT           mysql port
+     --user USER           mysql user
+     --password PASSWORD   mysql user's password
+     --sleep-time SLEEP_TIME
+                           sleep time per batch
+     --rows ROWS           rows per batch
+     --sql-file SQL_FILE   file containt sql statement
+     --encoding ENCODING   sql file encoding default utf8
+   ```
+   ---
+
+## 温和文件截断
+   **1、** 有时候我们会遇到下面的场景，一个文件已经非常大了，如果直接 rm 删除的话，这个东西可能会占用大量的IO带宽。于是我们就需要一个慢慢减小文件大小的工具，mtls-file-truncate 就是这个场景的一个解决方案。
+
+   
+   **2、** 假设我们要删除 /tmp/V982112-01.zip 这个文件
+   ```bash
+   ll /tmp/
+
+   -rw-r--r--@ 1 jianglexing  staff  437235344  5  3 11:31 V982112-01.zip
+   ```
+   **3、** 用 mtls-file-truncate 来完成一秒删除(截断)一点点
+   ```bash
+   mtls-file-truncate --chunk=32 /tmp/V982112-01.zip
+
+   2019-07-27 12:46:40,618 INFO file /tmp/V982112-01.zip size 437235344(byte)    chunck size 33554432(byte)
+   2019-07-27 12:46:40,619 INFO truncate file to 403680912 byte(s)
+   2019-07-27 12:46:41,625 INFO truncate file to 370126480 byte(s)
+   2019-07-27 12:46:42,631 INFO truncate file to 336572048 byte(s)
+   2019-07-27 12:46:43,636 INFO truncate file to 303017616 byte(s)
+   2019-07-27 12:46:44,641 INFO truncate file to 269463184 byte(s)
+   2019-07-27 12:46:45,645 INFO truncate file to 235908752 byte(s)
+   2019-07-27 12:46:46,651 INFO truncate file to 202354320 byte(s)
+   2019-07-27 12:46:47,656 INFO truncate file to 168799888 byte(s)
+   2019-07-27 12:46:48,659 INFO truncate file to 135245456 byte(s)
+   2019-07-27 12:46:49,663 INFO truncate file to 101691024 byte(s)
+   2019-07-27 12:46:50,668 INFO truncate file to 68136592 byte(s)
+   2019-07-27 12:46:51,673 INFO truncate file to 34582160 byte(s)
+   2019-07-27 12:46:52,679 INFO truncate file to 1027728 byte(s)
+   2019-07-27 12:46:53,682 INFO compelete
+   ```
+   查看完成后的效果
+   ```bash
+   ll /tmp/
+   
+   -rw-r--r--@ 1 jianglexing  staff   0  7 27 12:46 V982112-01.zip
+   ```
+   **4、** 更多的使用技巧可以查看帮助信息
+   ```bash
+   mtls-file-truncate --help
+   usage: mtls-file-truncate [-h] [--chunk CHUNK] [--sleep-time SLEEP_TIME] file
+   
+   positional arguments:
+     file                  file path
+   
+   optional arguments:
+     -h, --help            show this help message and exit
+     --chunk CHUNK         chunk size default 4 (MB)
+     --sleep-time SLEEP_TIME
+                           sleep time per truncate
+   ```
+   ---
+
+## 数据库性能测试
+   **mtls-perf-bench 的目标，我们希望在申请到一个数据库实例的时候对其进行一下性能测试，有人会说了大哥，这活 sysbench 不是会干吗？一点都没有错 sysbench 是可以做性能测试，它非常的优秀，以致于成为了业界一个事实的标准。**
+
+   **sysbench 也有它不好的地方，主要在于它的表结构是“固定”的，我们用 sysbench 可以测试出来上百万的qps，用我们自己的表结构可以跑多少分呢？mtls-perf-bench 想解决在特定表结构下的性能的测量问题。**
+
+   **mtls-perf-bench 希望通过测试发现参数上可以调整的地方，这样可以更早的发现实例存在的配置问题，之后也希望 mtls-perf-bench 可以作为一个诊断分析的工具。**
+
+   ---
+
+   **0、** 在目标实例上创建测试用户并授权
+   ```sql
+   create user mpb@'%' identified by '123456';
+   grant all on tempdb.* to mpb@'%';
+   ```
+
+   **1、** 创建表
+   ```bash
+   mtls-perf-bench --host=127.0.0.1 --port=3306 --user=mpb --password=123456 \
+   --ints=4 --floats=2 --varchars=2 create
+
+   2019-07-29 14:58:56,581  mtls-perf-bench  9031  MainThread  INFO  create table sql statement: create table tempdb.t ( id int not null auto_increment primary key,i0 int not null,i1 int not null,i2 int not null,i3 int not null,c0 varchar(128) not null,c1 varchar(128) not null,f0 float not null,f1 float not null);
+   2019-07-29 14:58:56,619  mtls-perf-bench  9031  MainThread  INFO  complete
+   ```
+   ```sql
+   show create table t;
+   
+   CREATE TABLE `t` (
+     `id` int(11) NOT NULL AUTO_INCREMENT,
+     `i0` int(11) NOT NULL,
+     `i1` int(11) NOT NULL,
+     `i2` int(11) NOT NULL,
+     `i3` int(11) NOT NULL,
+     `c0` varchar(128) COLLATE utf8mb4_general_ci NOT NULL,
+     `c1` varchar(128) COLLATE utf8mb4_general_ci NOT NULL,
+     `f0` float NOT NULL,
+     `f1` float NOT NULL,
+     PRIMARY KEY (`id`)
+   ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci
+   ```
+   **2、** insert 性能测试
+   ```bash
+   mtls-perf-bench --host=127.0.0.1 --port=3306 --user=mpb --password=123456    --ints=4 --floats=2 --varchars=2 --parallel=4 --rows=20000 insert
+   2019-07-29 17:40:20,574  mtls-perf-bench  18671  MainThread  INFO  start time = 1564393220.574386
+   2019-07-29 17:40:20,574  mtls-perf-bench  18671  MainThread  INFO  ****
+   2019-07-29 17:40:20,574  mtls-perf-bench  18671  MainThread  INFO  ****
+   2019-07-29 17:40:20,574  mtls-perf-bench  18671  Thread-1  INFO  sql statement: insert into tempdb.t (i0,i1,i2,i3,c0,c1,f0,f1) values(%s,%s,%s,%s,%s,%s,%s,%s)
+   2019-07-29 17:40:20,575  mtls-perf-bench  18671  Thread-2  INFO  sql statement: insert into tempdb.t (i0,i1,i2,i3,c0,c1,f0,f1) values(%s,%s,%s,%s,%s,%s,%s,%s)
+   2019-07-29 17:40:20,575  mtls-perf-bench  18671  Thread-3  INFO  sql statement: insert into tempdb.t (i0,i1,i2,i3,c0,c1,f0,f1) values(%s,%s,%s,%s,%s,%s,%s,%s)
+   2019-07-29 17:40:20,575  mtls-perf-bench  18671  Thread-4  INFO  sql statement: insert into tempdb.t (i0,i1,i2,i3,c0,c1,f0,f1) values(%s,%s,%s,%s,%s,%s,%s,%s)
+   2019-07-29 17:40:36,117  mtls-perf-bench  18671  MainThread  INFO  ****
+   2019-07-29 17:40:36,117  mtls-perf-bench  18671  MainThread  INFO  ****
+   2019-07-29 17:40:36,117  mtls-perf-bench  18671  MainThread  INFO  stop time = 1564393236.117363
+   2019-07-29 17:40:36,117  mtls-perf-bench  18671  MainThread  INFO  TPS:1286.75 duration 15.54(s)
+   ```
+   >可以看到四个迸发下tps为 1286.75 
+
+   **3、** 清理环境
+   ```bash
+   mtls-perf-bench --host=127.0.0.1 --port=3306 --user=mpb --password=123456  drop 
+   ```
+
+   **4、** 更多用法请查看帮助手册
+   ```bash
+   mtls-perf-bench --help
+   usage: mtls-perf-bench [-h] [--host HOST] [--port PORT] [--user USER]
+                          [--password PASSWORD] [--database DATABASE]
+                          [--table TABLE] [--parallel PARALLEL] [--rows ROWS]
+                          [--log-level {info,debug,error}]
+                          [--auto-primary-key {False,True}] [--ints INTS]
+                          [--floats FLOATS] [--doubles DOUBLES]
+                          [--varchars VARCHARS] [--varchar-length VARCHAR_LENGTH]
+                          [--decimals DECIMALS]
+                          [--decimal-precision DECIMAL_PRECISION]
+                          [--decimal-scale DECIMAL_SCALE]
+                          {create,drop,insert}
+   
+   positional arguments:
+     {create,drop,insert}
+   
+   optional arguments:
+     -h, --help            show this help message and exit
+     --host HOST           mysql host
+     --port PORT           mysql port
+     --user USER           mysql user
+     --password PASSWORD   mysql user \'s passowrd
+     --database DATABASE   work schema(database)
+     --table TABLE         work table
+     --parallel PARALLEL   parallel workers
+     --rows ROWS           rows
+     --log-level {info,debug,error}
+     --auto-primary-key {False,True}
+                           whether table has primary key
+     --ints INTS           int column counts
+     --floats FLOATS       float column counts
+     --doubles DOUBLES     double column counts
+     --varchars VARCHARS   varchar column counts
+     --varchar-length VARCHAR_LENGTH
+                           varchar column length default 128
+     --decimals DECIMALS   decimal column counts
+     --decimal-precision DECIMAL_PRECISION
+                           total digits length
+     --decimal-scale DECIMAL_SCALE
+                           the scale of decimal(the number of digits to the right
+                           of the decimal point)
+   ```
+
+   **其它**
+
+   目前 mtls-perf-bench 支持的操作
+
+   |**操作名**|**注释**|
+   |---------|-------|
+   |create   | 根据给定的参数创建表|
+   |insert   | 执行插件操作并记录tps|
+   |select   | 执行查询操作并记录qps(开发中)|
+   |update   | 执行更新操作并记录tps(开发中)|
+   |delete   | 执行删除操作并记录tps(开发中)|
+   |drop     | 删除表|
+   
+   **mtls-perf-bench 优势与劣势**
+
+   0、mtls-perf-bench 支持灵活的指定表的列数与类型
+
+   1、mtls-perf-bench 支持单进程和多进程两种工作模式
+
+   ---
+
+## 断开所有的客户端连接
+   **有些时候出于一些特殊的原因，我们想把所有的客户端连接都 kill 掉**
+   
+   **1、** kill 之前
+   ```sql
+   show processlist;
+   +----+-----------------+-----------+------+---------+------+------------------------+------------------+
+   | Id | User            | Host      | db   | Command | Time | State                  | Info             |
+   +----+-----------------+-----------+------+---------+------+------------------------+------------------+
+   |  4 | event_scheduler | localhost | NULL | Daemon  |  229 | Waiting on empty queue | NULL             |
+   | 13 | root            | localhost | NULL | Query   |    0 | starting               | show processlist |
+   | 14 | root            | localhost | NULL | Sleep   |   10 |                        | NULL             |
+   +----+-----------------+-----------+------+---------+------+------------------------+------------------+
+   3 rows in set (0.01 sec)
+   ```
+   ---
+
+   **2、** 发起 kill 指令
+   ```bash
+   mtls-kill-all-conections --host=127.0.0.1 --user=root --port=3306 --password='xxxxx'
+
+   2019-08-07 15:30:21,353 INFO kill 13;
+   2019-08-07 15:30:21,354 INFO kill 14;
+   ```
+   >mtls-kill-all-conections 对 event、Dump 线程开了白名单，所以他们不会被 kill 掉。
+
+   ---
+
+## 统计慢查询文件中的SQL类型与热点表
+   **用于分类统计慢查询文件中各类 SQL 出现的次数，热点表出现的次数**
+   ```bash
+   mtls-sql-distribution slow.log 
+
+
+   ------------------------------------------------
+   SQL出现频率如下:                                     
+   ------------------------------------------------
+   select                  |25                     
+   insert                  |19                     
+   update                  |0                      
+   delete                  |0                      
+   ------------------------------------------------
+   
+   
+   ------------------------------------------------
+   表名出现频率如下:                                      
+   ------------------------------------------------
+   t                                       |21     
+   tempdb.t                                |20     
+   data_locks                              |1      
+   ------------------------------------------------
+   ```
+   >说明 select 出现了 25 次，insert 出现了 19 次； t 表在慢查询中出现了 21 次 ... ...
+
+   **1、更多用法可以查看帮助信息**
+   ```bash
+   mtls-sql-distribution  --help
+   usage: mtls-sql-distribution [-h] [--limit LIMIT] sqlfile
+   
+   positional arguments:
+     sqlfile        slow query log file
+   
+   optional arguments:
+     -h, --help     show this help message and exit
+     --limit LIMI
+   ``` 
+
+   ---
+
+## 表的最晚更新时间统计
+   **mtls-file-stat 用于分析某一时间点之后就再没有更新过的表，比如说一套系统上线好几年了，经过了 n 次迭代，
+   有一些表早就不用了，但是并没有对它进行删除，这就使得这些占用的空间永远不会被释放，mtls-file-stat 就是用来
+   找出这些可疑的表**
+
+   **以找出 2019-08-20T00:00:00 后再也没有更新过的文件为例子**
+   ```bash
+   cd /database/mysql/data/
+
+   mtls-file-stat --baseline=2019-08-20T00:00:00 3306
+   2019-08-22 16:35:16,528 INFO 准备扫描目录 3306
+   2019-08-22 16:35:16,528 INFO 准备扫描目录 3306/#innodb_temp
+   2019-08-22 16:35:16,528 INFO 准备扫描目录 3306/mysql
+   2019-08-22 16:35:16,528 INFO 准备扫描目录 3306/performance_schema
+   2019-08-22 16:35:16,530 INFO 准备扫描目录 3306/sys
+   2019-08-22 16:35:16,530 INFO 准备扫描目录 3306/tempdb
+   
+   
+   3306 目录下文件统计信息明细 (order by mtime 小于 2019-08-20T00:00:00):
+   --------------------------------------------------------------------------------------------------------------------
+   file-path                                        | mtime                | atime                | ctime               
+   --------------------------------------------------------------------------------------------------------------------
+   3306/auto.cnf                                    | 2019-07-24T18:52:46  | 2019-08-21T14:35:14  | 2019-07-24T18:52:46 
+   3306/tempdb/t2.ibd                               | 2019-08-06T11:30:08  | 2019-08-21T14:35:13  | 2019-08-06T11:30:08 
+   3306/tempdb/t3.ibd                               | 2019-08-14T14:14:29  | 2019-08-21T14:35:13  | 2019-08-14T14:14:2
+   ```
+   更新多信息可以查看帮助
+   ```bash
+   mtls-file-stat --help
+   usage: mtls-file-stat [-h] [--order-by {atime,mtime,ctime}]
+                         [--baseline BASELINE]
+                         topdir
+   
+   positional arguments:
+     topdir
+   
+   optional arguments:
+     -h, --help            show this help message and exit
+     --order-by {atime,mtime,ctime}
+     --baseline BASELIN
+   ```
+   ---
+
+
+## 找出长时间没有使用过的表
+   **如果一张表有好几十天都没有写入了，这个往往是因为业务已经不再使用这张表，但是忘记了 drop 它，mtls-expired-tables 就是用于找出这种可疑的表**
+
+   找出最晚写入时间小于一天前的表
+   ```bash
+   mtls-expired-tables --not-used-days=1 /database/mysql/data/3306
+
+   2019-09-02 14:33:24,289 INFO 分析数据目录(/database/mysql/data/3306)
+   2019-09-02 14:33:24,289 INFO 准备过虑出最近修改日期(mtime) < 2019-09-01T14:33:24.289396
+
+   tempdb.ti
+   ```
+   也支持直接保存到文件
+   ```bash
+   mtls-expired-tables --not-used-days=1 /database/mysql/data/3306 > /tmp/expired-tables.log
+   
+   2019-09-02 14:37:12,880 INFO 分析数据目录(/database/mysql/data/3306)
+   2019-09-02 14:37:12,880 INFO 准备过虑出最近修改日期(mtime) < 2019-09-01T14:37:12.880759
+   ```
+   
+
+
+   ---
+
+
+
+
+
+
+
+
