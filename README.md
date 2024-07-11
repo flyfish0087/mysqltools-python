@@ -1,52 +1,37 @@
 # mysqltools-python权威指南
----
-主编&作者:**蒋乐兴**
-
-wechat:**jianglegege**
-
-email:**1721900707@qq.com**
-
-homepage:**http://www.sqlpy.com**
 
 ---
 
-- [关于](#关于)
-- [安装](#安装)
-- [数据库监控项采集 -- mtls-monitor](#数据库监控项采集)
-- [数据库备份 -- mtls-backup](#数据库备份)
-- [慢查询日志切片分析 -- mtls-log ](#慢查询日志切片分析)
-- [tcp端口连通性测试 -- mtls-http](#tcp端口连通性测试)
-- [查询给定目录中的大文件 -- mtls-big-files](#查询给定目录中的大文件)
-- [温和删除表中的行 -- mtls-delete-rows](#温和删除表中的行)
-- [温和文件截断 -- mtls-file-truncate](#温和文件截断)
-- [数据库性能测试 -- mtls-perf-bench](#数据库性能测试)
-- [断开所有的客户端连接 -- mtls-kill-all-connections](#断开所有的客户端连接)
-- [统计慢查询文件中的SQL类型与热点表 -- mtls-sql-distribution](#统计慢查询文件中的SQL类型与热点表)
-- [表的最晚更新时间统计 -- mtls-file-stat](#表的最晚更新时间统计)
-- [找出长时间没有使用过的表 -- mtls-expired-tables](#找出长时间没有使用过的表)
+官方微信公众平台 
+
+![官方微信公众平台](imgs/mp-wechat.jpg)
+
+---
+
+- [mysqltools-python权威指南](#mysqltools-python权威指南)
+  - [关于](#关于)
+  - [安装](#安装)
+  - [模拟多个会话连接MySQL](#模拟多个会话连接mysql)
+  - [自动向表中插入随机数据](#自动向表中插入随机数据)
+  - [数据库监控项采集](#数据库监控项采集)
+  - [数据库备份](#数据库备份)
+  - [tcp端口连通性测试](#tcp端口连通性测试)
+  - [查询给定目录中的大文件](#查询给定目录中的大文件)
+  - [慢查询日志切片分析](#慢查询日志切片分析)
+  - [温和删除表中的行](#温和删除表中的行)
+  - [温和文件截断](#温和文件截断)
+  - [数据库性能测试](#数据库性能测试)
+  - [断开所有的客户端连接](#断开所有的客户端连接)
+  - [统计慢查询文件中的SQL类型与热点表](#统计慢查询文件中的sql类型与热点表)
+  - [表的最晚更新时间统计](#表的最晚更新时间统计)
+  - [找出长时间没有使用过的表](#找出长时间没有使用过的表)
+  - [批量生成随机密码](#批量生成随机密码)
+  - [自定义mysql消息](#自定义mysql消息)
+
 ---
 
 ## 关于
    **1、** mysqltools-python 是一个 专为 dba 服务的 python 工具包，主要的目的在于把一些锁定程序化，一方面可以提高劳动生产率，另一方面可以节约 dba 的时间。
-
-   ---
-
-   **2、** 目前工具包中集成的工具列表
-   
-   |**工具名**|**功能说明**|
-   |---------|-----------|
-   |mtls-monitor| 监控项采集 |
-   |mtls-backup|  自动化备份数据库 |
-   |mtls-delete-rows| 分批(温和)删除大表中的行|
-   |mtls-file-truncate| 分批(温和)的截断物理文件|
-   |mtls-big-files| 查询出给定目录下的大文件名|
-   |mtls-http| tcp(http)端口连通性测试|
-   |mtls-log | 慢查询日志切片|
-   |mtls-perf-bench| 数据库跑分工具(开发中)|
-   |mtls-kill-all-connections | 杀死所有的客户端连接|
-   |mtls-sql-distribution | 统计慢查询文件中的SQL类型与热点表 |
-   |mtls-file-stat| 表的最晚更新时间统计|
-   |mtls-expired-tables|找出长时间没有使用过的表| 
 
    ---
 
@@ -70,15 +55,97 @@ homepage:**http://www.sqlpy.com**
    You should consider upgrading via the 'pip install --upgrade pip' command.
    ```
 
-   安装完成后你就可以使用mysqltools-python提供的两个命令行工具(mtls-montir,mtls-backup)和一个模块包(mtls)了；比如我们可以通过mtlsmonitor来看一上MySQL启动后执行了多少Select语句
-   ```
-   mtls-monitor --host=127.0.0.1 --port=3306 --user=monitor --password=monitor0352 ComSelect
-   ```
-   ```
-   44
-   ```
+   安装完成后你就可以使用mysqltools-python提供的命令行工具了。
 
    ---
+
+## 模拟多个会话连接MySQL
+模拟多个会话连接进 MySQL，假设我需要 100 个会话连接到 MySQL ，并且每一个会话都不停止的执行 `select * from mysql.user` 。
+```bash
+mysqltools-python % mtls-multi-session --host=192.168.100.100 --port=3306 --user=appuser --password=xxx --sql="select * from mysql.user" --sessions=100
+```
+通过 show processlist 检查有没有连接成功。
+```sql
+show processlist;
++-----+---------+--------------------+------+---------+------+-------+------------------+
+| Id  | User    | Host               | db   | Command | Time | State | Info             |
++-----+---------+--------------------+------+---------+------+-------+------------------+
+| 122 | appuser | 172.16.234.1:51006 | NULL | Sleep   |    0 |       | NULL             |
+| 123 | appuser | 172.16.234.1:51007 | NULL | Sleep   |    0 |       | NULL             |
+| 124 | appuser | 172.16.234.1:51008 | NULL | Sleep   |    1 |       | NULL             |
+| 125 | appuser | 172.16.234.1:51009 | NULL | Sleep   |    1 |       | NULL             |
+| 126 | appuser | 172.16.234.1:51010 | NULL | Sleep   |    1 |       | NULL             |
+| 127 | appuser | 172.16.234.1:51011 | NULL | Sleep   |    0 |       | NULL             |
+...
+| 218 | appuser | 172.16.234.1:51101 | NULL | Sleep   |    1 |       | NULL             |
+| 219 | appuser | 172.16.234.1:51102 | NULL | Sleep   |    1 |       | NULL             |
+| 220 | appuser | 172.16.234.1:51103 | NULL | Sleep   |    1 |       | NULL             |
+| 221 | appuser | 172.16.234.1:51104 | NULL | Sleep   |    1 |       | NULL             |
+| 222 | appuser | 172.16.234.1:51105 | NULL | Sleep   |    1 |       | NULL             |
++-----+---------+--------------------+------+---------+------+-------+------------------+
+101 rows in set (0.00 sec)
+```
+打开 general_log 可以看到如下内容
+```sql
+2022-03-03T20:51:16.192633+08:00	  272 Query	select * from mysql.user
+2022-03-03T20:51:16.199083+08:00	  279 Query	select * from mysql.user
+2022-03-03T20:51:16.201551+08:00	  243 Query	select * from mysql.user
+2022-03-03T20:51:16.201836+08:00	  259 Query	select * from mysql.user
+2022-03-03T20:51:16.208231+08:00	  226 Query	select * from mysql.user
+2022-03-03T20:51:16.210666+08:00	  225 Query	select * from mysql.user
+2022-03-03T20:51:16.212934+08:00	  257 Query	select * from mysql.user
+2022-03-03T20:51:16.215569+08:00	  230 Query	select * from mysql.user
+2022-03-03T20:51:16.215577+08:00	  249 Query	select * from mysql.user
+2022-03-03T20:51:16.220761+08:00	  246 Query	select * from mysql.user
+2022-03-03T20:51:16.222372+08:00	  235 Query	select * from mysql.user
+2022-03-03T20:51:16.226119+08:00	  262 Query	select * from mysql.user
+2022-03-03T20:51:16.232635+08:00	  273 Query	select * from mysql.user
+2022-03-03T20:51:16.234286+08:00	  247 Query	select * from mysql.user
+2022-03-03T20:51:16.235355+08:00	  231 Query	select * from mysql.user
+2022-03-03T20:51:16.259882+08:00	  254 Query	select * from mysql.user
+2022-03-03T20:51:16.262224+08:00	  227 Query	select * from mysql.user
+2022-03-03T20:51:16.262786+08:00	  255 Query	select * from mysql.user
+2022-03-03T20:51:16.263377+08:00	  252 Query	select * from mysql.user
+```
+
+---
+
+## 自动向表中插入随机数据
+mtls-auto-fill 启动的时候它会自己去你读的表结构，根据列的数据类型为其生成随机的数据并将它插入到表中，另外它是直接多进程并行插入的。
+
+1、第一步 建表
+```sql
+use tempdb;
+create table t(id int not null primary key,x int,y varchar(16));
+```
+2、 第二步 让 mysqltools-python 自动帮忙插入随机数据
+```
+mtls-auto-fill --host=127.0.0.1 --port=3306 --user=root --password=dbma@0352 --database=tempdb --table=t --rows=7 execute
+
+Report:
+------------------------------------
+|tps = 525.6439137943981
+|cost_time = 0.013317
+------------------------------------
+Compelete.
+```
+3、第三步 检查结果
+```sql
+mysql> select * from tempdb.t;
++---------------------+------------+------------------+
+| id                  | x          | y                |
++---------------------+------------+------------------+
+| 2827721858032540160 | 2069555504 | Frbz80ReZcvIsyUo |
+| 3397518922345350126 | 1005721898 | ZCdxKGA0kaB5HN9Q |
+| 6981254006475748892 |  782841028 | paBwCL6UOYJjgmi2 |
+| 7783530259779541650 | 2000201855 | MNO1Ukha9B42ng7t |
+| 8457598487940543319 |  790718228 | StJnlRFvyKIufG8m |
+| 8827136309810620419 |  522582024 | iFLASW2kUh6voER0 |
+| 9203053219364779144 | 1758021346 | oilZYzuWVOTHcQ4I |
++---------------------+------------+------------------+
+7 rows in set (0.01 sec)
+```
+---
 
 ## 数据库监控项采集
    **1): mysqltools-python已经实现的监控项列表**
@@ -870,3 +937,48 @@ homepage:**http://www.sqlpy.com**
 
 
 
+
+## 批量生成随机密码
+在创建 MySQL 用户的时候还在绞尽脑汁地想一个高强度的密码吗？现在不用这么做了，让程序完全随机的生成吧。
+```bash
+mtls-random-passwd --help
+usage: mtls-random-passwd [-h] [--batch BATCH] length
+
+positional arguments:
+  length                密码的长度
+
+optional arguments:
+  -h, --help            show this help message and exit
+  --batch BATCH, -b BATCH
+                        一次随机产生多少密码(默认一个密码)
+```
+选项参数 --batch 指定一次生成多少个随机密码，位置参数指定密码的长度，下面的这个例子可以一次性生成 4 个 12 位长度的密码。
+```bash
+mtls-random-passwd -b 4 12
+
+L}55!|nKI3&w
+z6w2$3**I5Mh
+w_0}345&3*[L
+t~Gj1-+z8269
+```
+
+---
+
+## 自定义mysql消息
+模拟 MySQL 服务端向客户端发送特定消息。
+
+启动 MySQL 模拟服务器
+```python
+mtls-fake-mysqld --host=127.0.0.1 --port=3306 --message='fake news next!'
+```
+
+客户端连接到模拟服务器就可以看到对应的消息了。
+```bash
+mysql -h127.0.0.1 -P3306
+ERROR 2020 (HY000): #HY000    
+fake news next!
+```
+
+这个除了可以用来发朋友圈之外，还可以用来检查到指定ip端口的网络特策略是否正常。
+
+---
